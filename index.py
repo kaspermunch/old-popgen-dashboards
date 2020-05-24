@@ -5,7 +5,7 @@ from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
 from app import app
-from apps import app1, app2, arg
+from apps import app1, app2, arg, template
 
 
 
@@ -264,6 +264,8 @@ def display_page(pathname):
         return app2.layout
     elif pathname == '/apps/arg':
         return arg.layout
+    elif pathname == '/apps/template':
+        return template.layout        
     else:
         return layout
 

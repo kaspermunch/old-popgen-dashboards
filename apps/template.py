@@ -14,50 +14,8 @@ from app import app
 
 import json
 
-###########################################e
-
+import numpy as np
 import pandas as pd
-import networkx as nx
-
-import teachingarg as targ
-from teachingarg import Coalescent, Recombination, interval_sum, get_breakpoints, get_child_lineages, rescale_positions, marginal_arg
-
-
-
-# G = nx.random_geometric_graph(20, 0.125)
-
-# edge_x = []
-# edge_y = []
-# for edge in G.edges():
-#     x0, y0 = G.nodes[edge[0]]['pos']
-#     x1, y1 = G.nodes[edge[1]]['pos']
-#     edge_x.append(x0)
-#     edge_x.append(x1)
-#     edge_x.append(None)
-#     edge_y.append(y0)
-#     edge_y.append(y1)
-#     edge_y.append(None)
-
-
-# node_x = []
-# node_y = []
-# for node in G.nodes():
-#     x, y = G.nodes[node]['pos']
-#     node_x.append(x)
-#     node_y.append(y)
-
-
-# node_adjacencies = []
-# node_text = []
-# for node, adjacencies in enumerate(G.adjacency()):
-#     node_adjacencies.append(len(adjacencies[1]))
-#     node_text.append('# of connections: '+str(len(adjacencies[1])))
-
-# # node_trace.marker.color = node_adjacencies
-# # node_trace.text = node_text
-
-###########################################
-
 
 layout = html.Div(
     [
@@ -67,11 +25,11 @@ layout = html.Div(
                     [
                         dbc.Container(
                             [
-                                html.H3("Ancestral recombination graph"),
+                                html.H3("TEMPLATE HEADER"),
                             ], fluid=True, style={'padding-left': 20,
-                                                'padding-top': 10,
-                                                'padding-bottom': 0,
-                                                }               
+                                                  'padding-top': 10,
+                                                  'padding-bottom': 0,
+                                                 }               
                         ),
                     ], width=8
                 ),
@@ -85,11 +43,11 @@ layout = html.Div(
                                style={'color': 'lightgrey'}
                             ),
                             ], fluid=True, style={'text-align': 'right',
-                                                'padding-right': 40,
-                                                'padding-top': 10,
-                                                'padding-bottom': 0,
-                                                'color': 'lightgrey',
-                                                }               
+                                                  'padding-right': 40,
+                                                  'padding-top': 10,
+                                                  'padding-bottom': 0,
+                                                  'color': 'lightgrey',
+                                                 }               
                         ),
                     ], width=4
                 )
@@ -97,7 +55,7 @@ layout = html.Div(
         ),
 
         # Hidden div inside the app that stores the intermediate value
-        html.Div(id='intermediate-value', style={'display': 'none'}),
+        html.Div(id='TEMPLATE-intermediate-value', style={'display': 'none'}),
 
         # row for arg and marginal trees
         dbc.Row(
@@ -115,14 +73,12 @@ layout = html.Div(
                                             [
                                                 dbc.Col(
                                                     [
-                                                        html.B("Simulation:"),
-                                                        # "Simulation:",
+                                                        html.B("Dropdown one:"),
                                                         dcc.Dropdown(
-                                                            id='sim-dropdown',
+                                                            id='TEMPLATE-dropdown-one',
                                                             options=[
-                                                                {'label': "ARG", 'value': 'arg'},
-                                                                # {'label': "SMC", 'value': 'smc'},
-                                                                {'label': "SMC'", 'value': 'smcprime'}
+                                                                {'label': "choice one", 'value': 'one'},
+                                                                {'label': "choice two'", 'value': 'two'}
                                                             ],
                                                             value='arg', searchable=False, clearable=False
                                                         ),
@@ -130,9 +86,9 @@ layout = html.Div(
                                                 ),                                                        
                                                 dbc.Col(
                                                     [
-                                                        html.B("Nr samples:"),
+                                                        html.B("Dropdown two"),
                                                         dcc.Dropdown(
-                                                            id='samples-dropdown',
+                                                            id='TEMPLATE-dropdown-two',
                                                             options=[
                                                                 {'label': "3", 'value': 3},
                                                                 {'label': "4", 'value': 4},
@@ -150,9 +106,9 @@ layout = html.Div(
                                                 ),  
                                                 dbc.Col(
                                                     [
-                                                        html.B("Sequence length:"),
+                                                        html.B("Dropdown three:"),
                                                         dcc.Dropdown(
-                                                            id='seqlen-dropdown',
+                                                            id='TEMPLATE-dropdown-three',
                                                             options=[
                                                                 {'label': "1kb", 'value': 1e+3},
                                                                 {'label': "2kb", 'value': 2e+3},
@@ -170,8 +126,8 @@ layout = html.Div(
                                                 ),                                                                                                        
                                                 dbc.Col(
                                                     [ 
-                                                        # html.Button('New simulation', id='new-arg-button')
-                                                        dbc.Button('New simulation', id='new-arg-button', 
+                                                        dbc.Button('New data', 
+                                                            id='TEMPLATE-new-data-button', 
                                                             color="primary", #size="sm", #outline=True,
                                                             style={'height': 35, 'font-size': "0.85rem"},
                                                             className="mr-1"
@@ -180,7 +136,7 @@ layout = html.Div(
                                                 ),    
                                                 dbc.Col(
                                                     [
-                                                        html.Div(id='arg-header'),
+                                                        html.Div(id='TEMPLATE-dynamic-header'),
 
                                                         # dcc.Markdown(d("""
                                                         # **Ancestral recombination graph:**   
@@ -202,7 +158,7 @@ layout = html.Div(
                                         ),
 
 
-                                        dcc.Graph(id='arg-figure',
+                                        dcc.Graph(id='TEMPLATE-main-figure',
                                                 clear_on_unhover=True,
                                                 figure={'layout': {
                                                             'height': 570,
@@ -230,7 +186,7 @@ layout = html.Div(
                                         dcc.Markdown(d("""
                                         **Marginal tree(s):** Hover over an ARG node.
                                         """), ),                    
-                                        dcc.Graph(id='marginal-tree',
+                                        dcc.Graph(id='TEMPLATE-side-figure-one',
                                                     figure={'layout': {
                                                             # 'title': 'Marginal tree',
                                                             'height': 250,
@@ -248,7 +204,7 @@ layout = html.Div(
                                         dcc.Markdown(d("""
                                         **Ancestral sequences:** Hover over an ARG node.
                                         """), ),                    
-                                        dcc.Graph(id='ancestral-sequence',
+                                        dcc.Graph(id='TEMPLATE-side-figure-two',
                                                 figure={'layout': {
                                                     'height': 250,
                                                         }
@@ -281,7 +237,7 @@ layout = html.Div(
                                         dbc.Container(
                                             [
                                                 dcc.Slider(
-                                                    id='event-slider',
+                                                    id='TEMPLATE-discrete-slider',
                                                     min=0, max=40, value=0, 
                                                     marks={str(i): str(i) for i in range(0, 40)}, 
                                                     step=None,
@@ -311,7 +267,7 @@ layout = html.Div(
                                         dbc.Container(
                                             [
                                                 dcc.RangeSlider(
-                                                    id='seq-slider',
+                                                    id='TEMPLATE-continuous-slider',
                                                     min=0,
                                                     max=1000,
                                                     value=[0, 1000],
@@ -333,118 +289,70 @@ layout = html.Div(
 )
 
 
-def arg_figure_data(nodes):
+def main_figure_data(data):
+
+    # use `data` as source for plot:
+
+    node_color = np.random.randint(1, 10, size=10)
 
     traces = []
-
-    edge_x = []
-    edge_y = [] 
-    # for lineage in get_parent_lineages(nodes, root=False):
-    for lineage in get_child_lineages(nodes):
-        # start
-        edge_x.append(lineage.down.xpos)
-        edge_y.append(lineage.down.height)
-        # end
-        edge_x.append(lineage.up.xpos)
-        edge_y.append(lineage.up.height)
-        # gap
-        edge_x.append(None)
-        edge_y.append(None)
-
     traces.append(dict(
-        x=edge_x,
-        y=edge_y,
-        mode='lines',
-        opacity=1,
-        hoverinfo = 'skip',
-        line={
-            'color': 'grey',
-        },
-        name=''
-    ))
-
-    node_x = []
-    node_y = []    
-    node_text = []
-    node_color = []
-    for node in nodes:
-        node_x.append(node.xpos)
-        node_y.append(node.height)
-        prop_ancestral = 1
-        if type(node) is Coalescent:
-            prop_ancestral = interval_sum(node.parent.intervals)
-        elif type(node) is Recombination:
-            prop_ancestral = interval_sum(node.child.intervals)
-        node_text.append(f"Fraction ancestral: {round(prop_ancestral, 2)}<br>Event: {type(node).__name__}")
-
-        node_color.append(prop_ancestral)
-
-    traces.append(dict(
-        x=node_x,
-        y=node_y,
-        text=node_text,
-        # range_color=[0, 1],
-        # cmin=0,
-        # cmax=1,
+        x=np.random.randint(1, 10, size=10),
+        y=np.random.randint(1, 10, size=10),
+        # mode='lines',
+        # line={
+        #     'color': 'grey',
+        # },        mode='markers',
         mode='markers',
-        opacity=1,
-        hoverinfo ='text',
         marker={
             'size': 10,
             'color': node_color,
-            'cmin': 0,
-            'cmax': 1,
-            'line': {'width': 0.7, 'color': 'white'},
-            # 'colorscale': 'Viridis',
-            'colorscale': 'Rainbow',
-            'colorbar': {'title': 'Fraction<br>ancestral<br>sequence',
-                        'titleside': 'top',
-                        'thickness': 15,
-                        'len': 0.5,
-                        # 'tickmode': 'array',
-                        'tickvals': [0, 0.5, 1],
-                        # 'ticktext': ['0', '1'],
-                        'ticks': 'outside',
-                        },
+            # 'cmin': 0,
+            # 'cmax': 1,
+            # 'line': {'width': 0.5, 'color': 'white'},
+#            'colorscale': 'Viridis',
+            # 'colorbar': {'title': 'Fraction<br>ancestral<br>sequence',
+            #             'titleside': 'top',
+            #             'thickness': 15,
+            #             'len': 0.5,
+            #             # 'tickmode': 'array',
+            #             'tickvals': [0, 0.5, 1],
+            #             # 'ticktext': ['0', '1'],
+            #             'ticks': 'outside',
+            #             },
         },
-        name=''
+        opacity=1,
+        hoverinfo ='text',
+        # hoverinfo ='skip',
+        name='TEMPLATE'
     ))
 
     return dict(data=traces,
                 layout=dict(xaxis=dict(fixedrange=True, 
-                                       range=[-0.1, 1.1], #title='Samples',
-                                       showgrid=False, showline=False, 
-                                       zeroline=False, showticklabels=False
+                                    #    range=[0, 6],
+                                       title='X label',
+                                    #    showgrid=False, showline=False, 
+                                    #    zeroline=False, showticklabels=False
                                        ),
                             yaxis=dict(fixedrange=True, 
-                                       range=[-0.1, 1.1], #title='Time',
-                                       showgrid=False, showline=False, 
-                                       zeroline=False, showticklabels=False
+                                    #    range=[0, 6],
+                                       title='Y label',
+                                    #    showgrid=False, showline=False, 
+                                    #    zeroline=False, showticklabels=False
                                        ),
                             hovermode='closest',
-                            range_color=[0,1],
-                            margin= {'l': 50, 'b': 20, 't': 20, 'r': 20},
-                            transition = {'duration': 0},
+                            # range_color=[0,1],
+                            margin= {'l': 50, 'b': 50, 't': 20, 'r': 20},
+                            transition = {'duration': 10},
                             showlegend=False
                             )
                 )
 
 
 @app.callback(
-    Output('arg-header', 'children'),
-    [Input('new-arg-button', 'n_clicks')])
+    Output('TEMPLATE-dynamic-header', 'children'),
+    [Input('TEMPLATE-new-data-button', 'n_clicks')])
 def update_header(n_clicks):
-
-    # if n_clicks is None:
-    #     return dcc.Markdown(d("""
-    #             **Click the button**   
-    #             to show a simulation.
-    #             """))
-    # else:
-    #     return dcc.Markdown(d("""
-    #                 **Simulation #{}:**   
-    #                 Node color show proportion of ancestral material.
-    #                 """.format(n_clicks)))
 
     if n_clicks is None:
         n_sim = 1
@@ -455,92 +363,74 @@ def update_header(n_clicks):
                 **Simulation #{}:**   
                 """.format(n_sim)))
 
-@app.callback(Output('intermediate-value', 'children'), 
-    [Input('new-arg-button', 'n_clicks'),
-     Input('sim-dropdown', 'value'),
-     Input('samples-dropdown', 'value'),
-     Input('seqlen-dropdown', 'value')])
+@app.callback(Output('TEMPLATE-intermediate-value', 'children'), 
+    [Input('TEMPLATE-new-data-button', 'n_clicks'),
+     Input('TEMPLATE-dropdown-one', 'value'),
+     Input('TEMPLATE-dropdown-two', 'value'),
+     Input('TEMPLATE-dropdown-three', 'value')])
 def new_data(n_clicks, sim, samples, length):
-
-    nodes = targ.get_arg_nodes(L=length, n=samples, simulation=sim)
-    rescale_positions(nodes)
-    json_str = targ.arg2json(nodes)
+    
+    json_str = '{}'
     return json_str
 
-
-    # arg = list(range(value))#[1,2,3]
-
-    # return json.dumps(arg)
-#     return cleaned_df.to_json(date_format='iso', orient='split')
-
-
 @app.callback(
-    [Output(component_id='event-slider', component_property='min'),
-     Output(component_id='event-slider', component_property='max'),
-     Output(component_id='event-slider', component_property='step'),
-     Output(component_id='event-slider', component_property='value')],
-    [Input('intermediate-value', 'children')])    
+    [Output(component_id='TEMPLATE-discrete-slider', component_property='min'),
+     Output(component_id='TEMPLATE-discrete-slider', component_property='max'),
+     Output(component_id='TEMPLATE-discrete-slider', component_property='step'),
+     Output(component_id='TEMPLATE-discrete-slider', component_property='value')],
+    [Input('TEMPLATE-intermediate-value', 'children')])    
 def update_event_slider(jsonified_data):
-    if jsonified_data:
-        nodes = targ.json2arg(jsonified_data)
-    else:
-        nodes = []
 
-    nr_leaves = len([n for n in nodes if type(n) is targ.Leaf])
-    nr_events = len(nodes)-nr_leaves
-    return 0, nr_events, 1, nr_events
+    if jsonified_data:
+        data = json.loads(jsonified_data)
+    else:
+        data = []
+
+    nr_marks = 10
+    return 0, nr_marks, 1, nr_marks
 
 @app.callback(
-    [Output(component_id='seq-slider', component_property='min'),
-     Output(component_id='seq-slider', component_property='max'),
-     Output(component_id='seq-slider', component_property='value'),
-     Output(component_id='seq-slider', component_property='marks')],
-    [Input('intermediate-value', 'children')])    
-def update_seq_slider(jsonified_data):
+    [Output(component_id='TEMPLATE-continuous-slider', component_property='min'),
+     Output(component_id='TEMPLATE-continuous-slider', component_property='max'),
+     Output(component_id='TEMPLATE-continuous-slider', component_property='value'),
+     Output(component_id='TEMPLATE-continuous-slider', component_property='marks')],
+    [Input('TEMPLATE-intermediate-value', 'children')])    
+def update_continuous_slider(jsonified_data):
     if jsonified_data:
-        nodes = targ.json2arg(jsonified_data)
+        data = json.loads(jsonified_data)
     else:
-        nodes = []
+        data = []
 
-    breakpoints = get_breakpoints(nodes)
-    print(breakpoints)
-    marks = dict((b*1000, str(i+1)) for i, b in enumerate(breakpoints))
-    print(marks)
-    # marks={0: '0', 500:'0.5', 1000: '1'},
+    # modify / subset data
+    data = data
+
+    marks = dict((b*1000, str(i+1)) for i, b in enumerate([0.1, 0.7]))
 
     return 0, 1000, [0, 1000], marks
 
-
 @app.callback(
-    Output('arg-figure', 'figure'),
-    [Input('intermediate-value', 'children'),
-     Input('event-slider', 'value'),
-     Input('seq-slider', 'value')])
-def update_arg_figure(jsonified_data, event, interval):
+    Output('TEMPLATE-main-figure', 'figure'),
+    [Input('TEMPLATE-intermediate-value', 'children'),
+     Input('TEMPLATE-discrete-slider', 'value'),
+     Input('TEMPLATE-continuous-slider', 'value')])
+def update_main_figure(jsonified_data, event, interval):
 
     if jsonified_data:
-        nodes = targ.json2arg(jsonified_data)
-
-        interval = [i/1000 for i in interval]
-
-        # Get marginal arg for interval
-        marg_arg_nodes = marginal_arg(nodes, interval)
-        print(interval)
-        # get only subset of events
-        nr_leaves = len([n for n in nodes if type(n) is targ.Leaf])
-        new_nodes = marg_arg_nodes[:nr_leaves+event]
+        data = json.loads(jsonified_data)
     else:
-        new_nodes = []
+        data = []
+    print(data)
+    # modify / subset data
+    data = data
 
-
-    return arg_figure_data(new_nodes)
+    return main_figure_data(data)
 
 @app.callback(
-    Output('marginal-tree', 'figure'),
-    [Input('event-slider', 'value'),
-     Input('seq-slider', 'value'),
-     Input('arg-figure', 'hoverData')])
-def update_arg_tree_figure(node, interval, hover):
+    Output('TEMPLATE-side-figure-one', 'figure'),
+    [Input('TEMPLATE-discrete-slider', 'value'),
+     Input('TEMPLATE-continuous-slider', 'value'),
+     Input('TEMPLATE-main-figure', 'hoverData')])
+def update_side_figure_one(node, interval, hover):
 
 #    print(node, interval, hover)
     if hover is None:
@@ -566,11 +456,11 @@ def update_arg_tree_figure(node, interval, hover):
                             ))
 
 @app.callback(
-    Output('ancestral-sequence', 'figure'),
-    [Input('event-slider', 'value'),
-     Input('seq-slider', 'value'),
-     Input('arg-figure', 'hoverData')])
-def update_ancestral_seq_figure(node, interval, hover):
+    Output('TEMPLATE-side-figure-two', 'figure'),
+    [Input('TEMPLATE-discrete-slider', 'value'),
+     Input('TEMPLATE-continuous-slider', 'value'),
+     Input('TEMPLATE-main-figure', 'hoverData')])
+def update_side_figure_two(node, interval, hover):
     # print(node, interval, hover)
     if hover is None:
         color='blue'
@@ -593,42 +483,3 @@ def update_ancestral_seq_figure(node, interval, hover):
                             transition = {'duration': 0},
                             showlegend=False
                             ))
-
-
-
-            # html.Div([
-            #     dcc.Markdown(d("""
-            #         **Hover Data**
-            #         Mouse over values in the graph.
-            #     """)),
-            #     html.Pre(id='hover-data', style={
-            #                                     'border': 'thin lightgrey solid',
-            #                                     'overflowX': 'scroll',
-            #                                     'height': 470,
-            #                                     })
-            # ], className='four columns'),
-            # html.Div([
-            #     dcc.Markdown(d("""
-            #         **Click Data**
-            #         Click values in the graph.
-            #     """)),
-            #     html.Pre(id='click-data', style={
-            #                                     'border': 'thin lightgrey solid',
-            #                                     'overflowX': 'scroll',
-            #                                     'height': 470,
-            #                                     })
-            # ], className='four columns'),  
-
-
-# @app.callback(
-#     Output('hover-data', 'children'),
-#     [Input('arg-figure', 'hoverData')])
-# def display_hover_data(hoverData):
-#     return json.dumps(hoverData, indent=2)
-
-
-# @app.callback(
-#     Output('click-data', 'children'),
-#     [Input('arg-figure', 'clickData')])
-# def display_click_data(clickData):
-#     return json.dumps(clickData, indent=2)
